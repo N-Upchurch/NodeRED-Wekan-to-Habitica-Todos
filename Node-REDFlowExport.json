@@ -1,0 +1,218 @@
+[
+    {
+        "id": "3dc2e06f.e9ba8",
+        "type": "tab",
+        "label": "Wekan => Habitica",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "953f8efa.551c18",
+        "type": "function",
+        "z": "3dc2e06f.e9ba8",
+        "name": "Build create task request",
+        "func": "const text = msg.payload[\"card\"];\nconst alias = msg.payload[\"cardId\"];\nconst act = msg.payload[\"description\"];\nconst todo = \"todo\"\n\nflow.set(\"sendURL\",`https://habitica.com/api/v3/tasks/user`);\n\nif (act == \"act-createCard\") {\n    msg.payload = {\n        \"text\": text,\n        \"type\": todo,\n        \"alias\": alias,\n        \"priority\": 1.5\n    }\n    return msg\n} else {\n    return console.error(\"Action type incorrect\")\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 340,
+        "wires": [
+            [
+                "322920ca.10b14"
+            ]
+        ]
+    },
+    {
+        "id": "4d198882.5869e8",
+        "type": "http request",
+        "z": "3dc2e06f.e9ba8",
+        "name": "Send request",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 970,
+        "y": 320,
+        "wires": [
+            [
+                "e9c70b6d.5a0c88"
+            ]
+        ]
+    },
+    {
+        "id": "59f5c229.32d94c",
+        "type": "switch",
+        "z": "3dc2e06f.e9ba8",
+        "name": "Case: Move / Create",
+        "property": "payload[\"description\"]",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "act-moveCard",
+                "vt": "str"
+            },
+            {
+                "t": "neq",
+                "v": "act-moveCard",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 360,
+        "y": 320,
+        "wires": [
+            [
+                "d55fb99.a191548"
+            ],
+            [
+                "953f8efa.551c18"
+            ]
+        ]
+    },
+    {
+        "id": "d55fb99.a191548",
+        "type": "function",
+        "z": "3dc2e06f.e9ba8",
+        "name": "Build score task request",
+        "func": "const alias = msg.payload[\"cardId\"];\nconst act = msg.payload[\"description\"];\nconst list = msg.payload[\"listId\"];\n\nflow.set(\"sendURL\",`https://habitica.com/api/v3/tasks/${alias}/score/up`);\n\nif (act == \"act-moveCard\" && list == \"w3hpri5SCfJoE9CTD\") {\n    msg.payload = {\"alias\": alias};\n    return msg; \n} else {\n    return console.error(\"Action type or list ID incorrect.\")\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 300,
+        "wires": [
+            [
+                "322920ca.10b14"
+            ]
+        ]
+    },
+    {
+        "id": "e9c70b6d.5a0c88",
+        "type": "debug",
+        "z": "3dc2e06f.e9ba8",
+        "name": "Log response",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1040,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "1645ddfc.cbcfca",
+        "type": "http in",
+        "z": "3dc2e06f.e9ba8",
+        "name": "Receive Wekan POST",
+        "url": "/POSTcards",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 320,
+        "wires": [
+            [
+                "59f5c229.32d94c",
+                "cafd75c0.f46778"
+            ]
+        ]
+    },
+    {
+        "id": "322920ca.10b14",
+        "type": "change",
+        "z": "3dc2e06f.e9ba8",
+        "name": "Set URL",
+        "rules": [
+            {
+                "t": "set",
+                "p": "url",
+                "pt": "msg",
+                "to": "sendURL",
+                "tot": "flow"
+            },
+            {
+                "t": "set",
+                "p": "headers.Content-Type",
+                "pt": "msg",
+                "to": "application/json",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 780,
+        "y": 320,
+        "wires": [
+            [
+                "ebec297c.108cb8"
+            ]
+        ]
+    },
+    {
+        "id": "cafd75c0.f46778",
+        "type": "http response",
+        "z": "3dc2e06f.e9ba8",
+        "name": "POST response",
+        "statusCode": "",
+        "headers": {},
+        "x": 340,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "ebec297c.108cb8",
+        "type": "credentials",
+        "z": "3dc2e06f.e9ba8",
+        "name": "Habitica Creds",
+        "props": [
+            {
+                "value": "headers.x-api-user",
+                "type": "msg"
+            },
+            {
+                "value": "headers.x-api-key",
+                "type": "msg"
+            },
+            {
+                "value": "headers.x-api-client",
+                "type": "msg"
+            }
+        ],
+        "x": 820,
+        "y": 360,
+        "wires": [
+            [
+                "4d198882.5869e8"
+            ]
+        ]
+    },
+    {
+        "id": "a3888bbd.072d8",
+        "type": "comment",
+        "z": "3dc2e06f.e9ba8",
+        "name": "README",
+        "info": "## About this Flow\n\nThis flow receives an outgoing webhook from your Wekan instance, and calls a POST request to the Habitica API to create or score a to-do. \n\nWhen cards are created in Wekan, a todo by the same name will be created in Habitica. When a card is moved to a list of your choosing, the matching todo will be scored in Habitica. \n\n### To Use:\n\n1. Create a webhook in your Wekan instance. Set the URL to yourNodeREDInstance.com/nodered/POSTcards\n2. Get the id of your 'completed' column in Wekan using the inspector. It will look something like this: `id=\"js-list-w3hpri5SCfJoE9CTD\"`. We only need the last part, after `js-list-`.\n3. Enter the list id in the `if` statement conditional of the `Build score task request` Formula node.\n4. Fill in your credentials in the `Habitica Creds` node. ID & Client should both be your user ID, and key should be your API key. This information can be found in the [API](https://habitica.com/user/settings/api) section of your Habitica user settings.\n5. Hit \"Deploy,\" test, and enjoy/",
+        "x": 100,
+        "y": 260,
+        "wires": []
+    }
+]
